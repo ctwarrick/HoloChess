@@ -513,7 +513,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mockBoard: {fileID: 7125991082934625205, guid: 434f5a4666cf3af41b3f8ea13fbd5989, type: 3}
-  realBoard: {fileID: 3811024441307680683, guid: b0a49cb559fd09f41a6ce17b5cf2f4fd, type: 3}
+  realBoard: {fileID: 5173370880545610816, guid: b0a49cb559fd09f41a6ce17b5cf2f4fd, type: 3}
   whitePawn: {fileID: 3031959362264111149, guid: b8747d12dc7329d4e83798b61ff62caf, type: 3}
   whiteRook: {fileID: 3480047295768947277, guid: ef35b97b59dbf8b42a2e46caf581080c, type: 3}
   whiteKnight: {fileID: 9083100407386944741, guid: f17770140b57089408b9e842deb39fba, type: 3}
@@ -560,7 +560,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7125991082934625205, guid: 434f5a4666cf3af41b3f8ea13fbd5989, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7125991082934625205, guid: 434f5a4666cf3af41b3f8ea13fbd5989, type: 3}
       propertyPath: m_TagString
@@ -596,7 +596,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7615388568572868879, guid: 434f5a4666cf3af41b3f8ea13fbd5989, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: 7615388568572868879, guid: 434f5a4666cf3af41b3f8ea13fbd5989, type: 3}
       propertyPath: m_LocalRotation.x
@@ -604,7 +604,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7615388568572868879, guid: 434f5a4666cf3af41b3f8ea13fbd5989, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: 7615388568572868879, guid: 434f5a4666cf3af41b3f8ea13fbd5989, type: 3}
       propertyPath: m_LocalRotation.z
@@ -616,7 +616,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7615388568572868879, guid: 434f5a4666cf3af41b3f8ea13fbd5989, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
+      value: 90
       objectReference: {fileID: 0}
     - target: {fileID: 7615388568572868879, guid: 434f5a4666cf3af41b3f8ea13fbd5989, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
