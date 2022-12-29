@@ -1,0 +1,26 @@
+fileFormatVersion: 2
+guid: cb642e97fc0ceaf46b3180897a1ae5cc
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - whitePawn: {fileID: 8495703739787912659, guid: a1d50a6d07bea1342bb07b76a9c78a92, type: 3}
+  - whiteRook: {fileID: 5916059462892850510, guid: 718671ce29cc7c540943e8bf0aea1611, type: 3}
+  - whiteKnight: {instanceID: 0}
+  - whiteBishop: {instanceID: 0}
+  - whiteQueen: {instanceID: 0}
+  - whiteKing: {instanceID: 0}
+  - blackPawn: {instanceID: 0}
+  - blackRook: {instanceID: 0}
+  - blackKnight: {instanceID: 0}
+  - blackBishop: {instanceID: 0}
+  - blackQueen: {instanceID: 0}
+  - blackKing: {instanceID: 0}
+  - attackSquare: {instanceID: 0}
+  - moveSquare: {instanceID: 0}
+  - checkSquare: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
