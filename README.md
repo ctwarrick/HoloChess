@@ -32,9 +32,13 @@ On launching the application, you will see a transparent gray chessboard attache
 
 You can move pieces by either grabbing them directly or using far manipulation via one of your hand rays.  Hovering over a piece will display its legal moves as blue squares.  Illegal moves will error out, and cause the piece to return to its previous spot.
 
+## Latest changes
+* Implement capturing
+* Refactor SpawnBoard God method into more organized and readable submethods
+* Bugfix - enable mesh colliders on Black's king and bishops
+
 ## What Isn't Implemented Yet
 * Castling
-* Capturing
 * Check
 * Checkmate
 * Hiding the debug console
