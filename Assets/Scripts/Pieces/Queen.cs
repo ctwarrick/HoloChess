@@ -12,6 +12,22 @@ public class Queen : Piece
         _straightLineMover = new StraightLineMover(this);
         base.Awake();
     }
+    protected override void GetCaptured()
+    {
+        base.GetCaptured();
+
+        if (_color == Color.Black)
+        {
+            gameController.CapturedPieces["BlackQueen"] = true;
+            FillCapturedSpot("BlackQueen");
+        }
+        else
+        {
+            gameController.CapturedPieces["WhiteQueen"] = true;
+            FillCapturedSpot("WhiteQueen");
+        }
+    }
+
     public override void UpdateActionSquares()
     {
         base.UpdateActionSquares();

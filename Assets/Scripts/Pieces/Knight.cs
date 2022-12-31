@@ -17,6 +17,39 @@ public class Knight : Piece
             upright = new Vector3(0, 180, 0);
         }
     }
+
+    protected override void GetCaptured()
+    {
+        base.GetCaptured();
+
+        if (_color == Color.Black)
+        {
+            if (gameController.CapturedPieces["BlackKnight1"] == false)
+            {
+                gameController.CapturedPieces["BlackKnight1"] = true;
+                FillCapturedSpot("BlackKnight1");
+            }
+            else
+            {
+                gameController.CapturedPieces["BlackKnight2"] = true;
+                FillCapturedSpot("BlackKnight2");
+            }
+        }
+        else
+        {
+            if (gameController.CapturedPieces["WhiteKnight1"] == false)
+            {
+                gameController.CapturedPieces["WhiteKnight1"] = true;
+                FillCapturedSpot("WhiteKnight1");
+            }
+            else
+            {
+                gameController.CapturedPieces["WhiteKnight2"] = true;
+                FillCapturedSpot("WhiteKnight2");
+            }
+        }
+    }
+
     public override void UpdateActionSquares()
     {
         base.UpdateActionSquares();

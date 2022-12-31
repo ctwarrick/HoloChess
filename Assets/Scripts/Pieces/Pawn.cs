@@ -38,6 +38,61 @@ public class Pawn : Piece
     }
 
 #nullable enable
+    protected override bool CheckLegalMove(BoardCoords moveSquare)
+    {
+        Piece? squareContents = gameController.ReturnPiece(moveSquare);
+
+        foreach (BoardCoords square in _moveSquares.Keys)
+        {
+            if (square.X == moveSquare.X && square.Y == moveSquare.Y && squareContents == null)
+            {
+                return true;
+            }
+        }
+
+        foreach (BoardCoords square in _threatSquares.Keys)
+        {
+            if (square.X == moveSquare.X && square.Y == moveSquare.Y && squareContents != null)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+#nullable disable
+
+    protected override void GetCaptured()
+    {
+        base.GetCaptured();
+
+        if (_color == Color.Black)
+        {
+            // Move to the slot in the array corresponding to the captured black pawns
+            SpaceCoords newCoords = boardController.CapturedBlackPawnCoords[gameController.CapturedBlackPawnCount];
+            var newPosition = new Vector3(newCoords.X,
+                                          (boardController.BoardPosition.y + 
+                                           boardController.BoardHeight),
+                                          newCoords.Y);
+            transform.position = newPosition;
+
+            gameController.CapturedBlackPawnCount++;
+        }
+        else
+        {
+            // Move to the slot in the array corresponding to the captured white pawns
+            SpaceCoords newCoords = boardController.CapturedWhitePawnCoords[gameController.CapturedWhitePawnCount];
+            var newPosition = new Vector3(newCoords.X,
+                                          (boardController.BoardPosition.y +
+                                           boardController.BoardHeight),
+                                          newCoords.Y);
+            transform.position = newPosition;
+
+            gameController.CapturedWhitePawnCount++;
+        }
+    }
+
+#nullable enable
     public override void UpdateActionSquares()
     {
         base.UpdateActionSquares();

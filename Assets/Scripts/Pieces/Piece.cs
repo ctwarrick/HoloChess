@@ -101,6 +101,26 @@ public abstract class Piece : MonoBehaviour
     #endregion
 
     #region Methods
+    /// <summary> 
+    /// Directs a piece that it's been captured and to move to the holding bin
+    /// </summary>
+    protected virtual void GetCaptured()
+    {
+        audioSource.PlayOneShot(pieceHitsPiece);
+        gameController.BoardUpdate(null, _location);
+        _location = new BoardCoords(-1, -1);
+    }
+
+    protected virtual void FillCapturedSpot(string pieceName)
+    {
+        gameController.CapturedPieces[pieceName] = true;
+        var newPosition = new Vector3(boardController.CapturedCoords[pieceName].X,
+                              (boardController.BoardPosition.y +
+                              boardController.BoardHeight),
+                              boardController.CapturedCoords[pieceName].Y);
+        transform.position = newPosition;
+    }
+
     /// <summary>
     /// Centers a piece on its square after it's either been moved or let go of, then
     /// deactivates it.
@@ -258,7 +278,7 @@ public abstract class Piece : MonoBehaviour
     protected virtual void Update()
     {
         // This resets the location/rotation of a piece if it gets dropped off the board or flung 
-        if (transform.position.y < (boardController.BoardPosition.y - 0.1) ||
+        if (transform.position.y < (boardController.BoardPosition.y - 0.01) ||
             Math.Abs(transform.position.x) > (boardController.BoardPosition.x + 0.5) ||
             Math.Abs(transform.position.z) > (boardController.BoardPosition.z + 0.5))
         {
@@ -302,6 +322,20 @@ public abstract class Piece : MonoBehaviour
     {
 
         foreach (BoardCoords square in _moveSquares.Keys)
+        {
+            if (square.X == moveSquare.X && square.Y == moveSquare.Y)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected virtual bool CheckThreat(BoardCoords moveSquare)
+    {
+
+        foreach (BoardCoords square in _threatSquares.Keys)
         {
             if (square.X == moveSquare.X && square.Y == moveSquare.Y)
             {
@@ -397,11 +431,7 @@ public abstract class Piece : MonoBehaviour
             audioSource.PlayOneShot(pieceHitsBoard);
 
             // Update the virtual board and the piece's own awareness
-            gameController.BoardUpdate(null, _location);
-            gameController.BoardUpdate(this, landingSquare);
-            _location = landingSquare;
-            CenterPieceOnSquare();
-            gameController.SwitchTurn();
+            MovePiece(landingSquare);
         }
         // if it's illegal, error and reset
         else
@@ -411,7 +441,40 @@ public abstract class Piece : MonoBehaviour
     }
     protected virtual void HandlePieceCollision(Collision coll)
     {
-        throw new NotImplementedException();
+        // Get the game object you hit and its position
+        Piece pieceYouHit = coll.gameObject.GetComponent<Piece>();
+        Vector3 attackPosition = coll.gameObject.transform.position;
+
+        // Figure out what square the attacked piece is on
+        var attackedSquare = new BoardCoords();
+
+        // stop compiler from squawking about unused exception
+#pragma warning disable 0168
+        try
+        {
+            attackedSquare = boardController.GetSquareForSpace(attackPosition.x, attackPosition.z);
+        }
+        catch (ArgumentException e)
+        {
+            IllegalMove(boardController.GetSquareForSpace(attackPosition.x, attackPosition.z));
+        }
+#pragma warning restore 0168
+
+        // if it's the opposite color and legal, capture, otherwise ignore because it's your own
+        if (CheckThreat(attackedSquare) == true)
+        {
+            pieceYouHit.GetCaptured();
+            MovePiece(attackedSquare);
+        }
+    }
+
+    private void MovePiece(BoardCoords landingSquare)
+    {
+        gameController.BoardUpdate(null, _location);
+        gameController.BoardUpdate(this, landingSquare);
+        _location = landingSquare;
+        CenterPieceOnSquare();
+        gameController.SwitchTurn();
     }
     public virtual bool AnalyzeSquare(BoardCoords square)
     {

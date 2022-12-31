@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 public class GameController : MonoBehaviour
@@ -27,9 +28,23 @@ public class GameController : MonoBehaviour
     private Color _activeTurn;
     private bool _isWhiteKingChecked;
     private bool _isBlackKingChecked;
+    private Dictionary<String, bool> _capturedPieces;
+    private int _capturedWhitePawnCount;
+    private int _capturedBlackPawnCount;
     #endregion
 
     #region Properties
+    public int CapturedWhitePawnCount
+    {
+        get { return _capturedWhitePawnCount; }
+        set { _capturedWhitePawnCount = value; }
+    }
+
+    public int CapturedBlackPawnCount
+    {
+        get { return _capturedBlackPawnCount; }
+        set { _capturedBlackPawnCount = value; }
+    }
     public List<BoardCoords> WhiteCheckSquares
     {
         get { return _whiteCheckSquares; }
@@ -55,17 +70,46 @@ public class GameController : MonoBehaviour
     {
         get { return _activeTurn; }
     }
+
+    public Dictionary<String, bool> CapturedPieces
+    {
+        get { return _capturedPieces; }
+    }
     #endregion
 
     #region Methods
     // Start is called before the first frame update
     void Start()
     {
+        CreatePrivateFields();
+
         _activeTurn = Color.White;
+        _boardController = gameObject.GetComponent<BoardController>();
+
+        InitializeCapturedPieceCoords();
+    }
+
+    private void CreatePrivateFields()
+    {
         _virtualBoard = new Piece[8, 8];
         _whiteCheckSquares = new List<BoardCoords>();
         _blackCheckSquares = new List<BoardCoords>();
-        _boardController = gameObject.GetComponent<BoardController>();
+        _capturedPieces = new Dictionary<string, bool>();
+        _capturedBlackPawnCount = 0;
+        _capturedWhitePawnCount = 0;
+    }
+
+    private void InitializeCapturedPieceCoords()
+    {
+        string filePath = Path.Combine(Application.streamingAssetsPath, "CapturedCoords.csv");
+        var sr = new StreamReader(filePath);
+
+        for (int row = 0; row <= 13; row++)
+        {
+            string line = sr.ReadLine();
+            string[] coordText = line.Split(',');
+            _capturedPieces.Add(coordText[0], false);
+        }
     }
 
     // Update is called once per frame

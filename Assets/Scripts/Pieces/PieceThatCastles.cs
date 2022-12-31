@@ -27,7 +27,11 @@ public abstract class PieceThatCastles : Piece
         // Call this on Awake otherwise pawns will not recognize it's their first move.
         _isFirstMove = true;
     }
-    // Start is called before the first frame update
+
+    protected override void GetCaptured()
+    {
+        base.GetCaptured();
+    }
 
     protected override void OnCollisionEnter(Collision coll)
     {

@@ -17,6 +17,23 @@ public class King : PieceThatCastles
             upright = new Vector3(0, -90, 90);
         }
     }
+
+    /// <summary>
+    /// This shouldn't actually get invoked; it's only here so the other pieces can be captured.
+    /// </summary>
+    protected override void GetCaptured()
+    {
+        throw new InvalidOperationException("Kings cannot be captured, only checkmated!");
+    }
+
+    /// <summary>
+    /// This shouldn't actually get invoked; it's only here so the other pieces can be captured.
+    /// </summary>
+    protected override void FillCapturedSpot(string pieceName)
+    {
+        throw new InvalidOperationException("Kings cannot be captured, only checkmated!");
+    }
+
     public override void UpdateActionSquares()
     {
         // Clear out what's there

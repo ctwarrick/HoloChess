@@ -83,10 +83,16 @@ public class BoardController : MonoBehaviour
     private float _squareHeight;
     // This holds the Y value of the base of a piece.  Will change as you scale the board.
     private float _boardHeight = 0.005f;
+    // This holds the rotation angles for instantiating pieces.
+    private Dictionary<String, Quaternion> _rotationAngles;
 
     // Additional spacing for square highlights so they don't act weird
     private const float ObjectSpacing = 0.005f;
 
+    // Holds the coords where you display captured pieces once they're gone
+    private Dictionary<String, SpaceCoords> _capturedPieceCoords;
+    private SpaceCoords[] _capturedWhitePawnCoords;
+    private SpaceCoords[] _capturedBlackPawnCoords;
     #endregion
 
     #region Properties
@@ -100,6 +106,21 @@ public class BoardController : MonoBehaviour
         get { return _boardPosition; }
     }
 
+    public Dictionary<String, SpaceCoords> CapturedCoords
+    {
+        get { return _capturedPieceCoords; }
+    }
+
+    public SpaceCoords[] CapturedWhitePawnCoords
+    {
+        get { return _capturedWhitePawnCoords; }
+    }
+
+    public SpaceCoords[] CapturedBlackPawnCoords
+    {
+        get { return _capturedBlackPawnCoords; }
+    }
+
     public DebugConsole DebugConsole
     {
         get { return _debugConsole; }
@@ -110,31 +131,276 @@ public class BoardController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
+        _rotationAngles = InitializeRotationAngles();
+        _capturedPieceCoords = new Dictionary<string, SpaceCoords>();
+        _capturedBlackPawnCoords = new SpaceCoords[8];
+        _capturedWhitePawnCoords = new SpaceCoords[8];
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     public void SpawnBoard()
     {
-        // First get position of mock board, destroy it, instantiate real board
+        InitializeBoard();
+        InitializeBoardSquares();
+
+        InitializeCapturedPieceCoords();
+        InitializeCapturedPawnCoords();
+
+        // How to assemble the board is largely hardcoded because it's chess; it doesn't change
+        // Board X == Unity X; Board Y == Unity Z
+        PopulatePawns();
+        PopulateRooks();
+        PopulateKnights();
+        PopulateBishops();
+        PopulateQueens();
+        PopulateKings();
+
+        // Once all pieces are there, get game controller and sync action squares once
+        var gameController = gameObject.GetComponent<GameController>();
+        gameController.ReSync();
+    }
+
+    private Dictionary<String, Quaternion> InitializeRotationAngles()
+    {
+        var rotationAngles = new Dictionary<String, Quaternion>();
+
+        var whiteStandard = new Vector3(0, 180, 90);
+        rotationAngles.Add("WhiteStandard", ToQuaternion(whiteStandard));
+
+        var blackStandard = new Vector3(0, 0, 90);
+        rotationAngles.Add("BlackStandard", ToQuaternion(blackStandard));
+
+        var whiteKnight = new Vector3(0, 180, 0);
+        rotationAngles.Add("WhiteKnight", ToQuaternion(whiteKnight));
+
+        var blackKnight = new Vector3(0, 0, 0);
+        rotationAngles.Add("BlackKnight", ToQuaternion(blackKnight));
+
+        var whiteKing = new Vector3(0, -90, 90);
+        rotationAngles.Add("WhiteKing", ToQuaternion(whiteKing));
+
+        var blackKing = new Vector3(0, -90, 90);
+        rotationAngles.Add("BlackKing", ToQuaternion(blackKing));
+
+        return rotationAngles;
+    }
+
+    private void PopulatePawns()
+    {
+        for (int i = 0; i <= 7; i++)
+        {
+            // Assign positions in space
+            var whitePosition = new Vector3(_boardSquares[i, 1].XCenter,
+                                            (_boardHeight + _boardPosition.y),
+                                            _boardSquares[i, 1].YCenter);
+
+            var blackPosition = new Vector3(_boardSquares[i, 6].XCenter,
+                                            (_boardHeight + _boardPosition.y),
+                                            _boardSquares[i, 6].YCenter);
+
+            // Instantiate GameObjects
+            GameObject newWhitePawn = Instantiate(whitePawn,
+                                                  whitePosition,
+                                                  _rotationAngles["WhiteStandard"]);
+            GameObject newBlackPawn = Instantiate(blackPawn,
+                                                  blackPosition,
+                                                  _rotationAngles["BlackStandard"]);
+        }
+    }
+
+    private void PopulateRooks()
+    {
+        var queensWhiteRookPos = new Vector3(_boardSquares[0, 0].XCenter,
+                                             (_boardHeight + _boardPosition.y),
+                                             _boardSquares[0, 0].YCenter);
+        var kingsWhiteRookPos = new Vector3(_boardSquares[7, 0].XCenter,
+                                            (_boardHeight + _boardPosition.y),
+                                            _boardSquares[7, 0].YCenter);
+        var queensBlackRookPos = new Vector3(_boardSquares[0, 7].XCenter,
+                                             (_boardHeight + _boardPosition.y),
+                                             _boardSquares[0, 7].YCenter);
+        var kingsBlackRookPos = new Vector3(_boardSquares[7, 7].XCenter,
+                                            (_boardHeight + _boardPosition.y),
+                                            _boardSquares[7, 7].YCenter);
+
+        GameObject queensWhiteRook = Instantiate(whiteRook, 
+                                                 queensWhiteRookPos,
+                                                 _rotationAngles["WhiteStandard"]);
+        GameObject kingsWhiteRook = Instantiate(whiteRook, 
+                                                kingsWhiteRookPos,
+                                                _rotationAngles["WhiteStandard"]);
+        GameObject queensBlackRook = Instantiate(blackRook, 
+                                                 queensBlackRookPos,
+                                                 _rotationAngles["BlackStandard"]);
+        GameObject kingsBlackRook = Instantiate(blackRook,
+                                                kingsBlackRookPos,
+                                                _rotationAngles["BlackStandard"]);
+    }
+
+    private void PopulateKnights()
+    {
+        var queensWhiteKnightPos = new Vector3(_boardSquares[1, 0].XCenter,
+                                               (_boardHeight + _boardPosition.y),
+                                               _boardSquares[1, 0].YCenter);
+        var kingsWhiteKnightPos = new Vector3(_boardSquares[6, 0].XCenter,
+                                              (_boardHeight + _boardPosition.y),
+                                              _boardSquares[6, 0].YCenter);
+        var queensBlackKnightPos = new Vector3(_boardSquares[1, 7].XCenter,
+                                               (_boardHeight + _boardPosition.y),
+                                               _boardSquares[1, 7].YCenter);
+        var kingsBlackKnightPos = new Vector3(_boardSquares[6, 7].XCenter,
+                                              (_boardHeight + _boardPosition.y),
+                                              _boardSquares[6, 7].YCenter);
+
+        GameObject queensWhiteKnight = Instantiate(whiteKnight,
+                                                   queensWhiteKnightPos,
+                                                   _rotationAngles["WhiteKnight"]);
+        GameObject kingsWhiteKnight = Instantiate(whiteKnight,
+                                                  kingsWhiteKnightPos,
+                                                  _rotationAngles["WhiteKnight"]);
+        GameObject queensBlackKnight = Instantiate(blackKnight,
+                                                   queensBlackKnightPos,
+                                                   _rotationAngles["BlackKnight"]);
+        GameObject kingsBlackKnight = Instantiate(blackKnight,
+                                                  kingsBlackKnightPos,
+                                                  _rotationAngles["BlackKnight"]);
+    }
+
+    private void PopulateBishops()
+    {
+        var queensWhiteBishopPos = new Vector3(_boardSquares[2, 0].XCenter,
+                                       (_boardHeight + _boardPosition.y),
+                                       _boardSquares[2, 0].YCenter);
+        var kingsWhiteBishopPos = new Vector3(_boardSquares[5, 0].XCenter,
+                                              (_boardHeight + _boardPosition.y),
+                                              _boardSquares[5, 0].YCenter);
+        var queensBlackBishopPos = new Vector3(_boardSquares[2, 7].XCenter,
+                                               (_boardHeight + _boardPosition.y),
+                                               _boardSquares[2, 7].YCenter);
+        var kingsBlackBishopPos = new Vector3(_boardSquares[5, 7].XCenter,
+                                              (_boardHeight + _boardPosition.y),
+                                              _boardSquares[5, 7].YCenter);
+
+        GameObject queensWhiteBishop = Instantiate(whiteBishop,
+                                                   queensWhiteBishopPos,
+                                                   _rotationAngles["WhiteStandard"]);
+        GameObject kingsWhiteBishop = Instantiate(whiteBishop,
+                                                  kingsWhiteBishopPos,
+                                                  _rotationAngles["WhiteStandard"]);
+        GameObject queensBlackBishop = Instantiate(blackBishop,
+                                                   queensBlackBishopPos,
+                                                   _rotationAngles["BlackStandard"]);
+        GameObject kingsBlackBishop = Instantiate(blackBishop,
+                                                  kingsBlackBishopPos,
+                                                  _rotationAngles["BlackStandard"]);
+    }
+
+    private void PopulateQueens()
+    {
+        var whiteQueenPos = new Vector3(_boardSquares[3, 0].XCenter,
+                                (_boardHeight + _boardPosition.y),
+                                _boardSquares[3, 0].YCenter);
+        var blackQueenPos = new Vector3(_boardSquares[3, 7].XCenter,
+                                        (_boardHeight + _boardPosition.y),
+                                        _boardSquares[3, 7].YCenter);
+
+        GameObject realWhiteQueen = Instantiate(whiteQueen, whiteQueenPos, _rotationAngles["WhiteStandard"]);
+        GameObject realBlackQueen = Instantiate(blackQueen, blackQueenPos, _rotationAngles["BlackStandard"]);
+    }
+
+    private void PopulateKings()
+    {
+        var whiteKingPos = new Vector3(_boardSquares[4, 0].XCenter,
+                               (_boardHeight + _boardPosition.y),
+                               _boardSquares[4, 0].YCenter);
+        var blackKingPos = new Vector3(_boardSquares[4, 7].XCenter,
+                                       (_boardHeight + _boardPosition.y),
+                                       _boardSquares[4, 7].YCenter);
+
+        GameObject realWhiteKing = Instantiate(whiteKing, whiteKingPos, _rotationAngles["WhiteKing"]);
+        GameObject realBlackKing = Instantiate(blackKing, blackKingPos, _rotationAngles["BlackKing"]);
+    }
+
+    /// <summary>
+    /// Initializes real board by getting the position of the mock board, destroying it,
+    /// instantiating the real board and debug console
+    /// </summary>
+    private void InitializeBoard()
+    {
         GameObject instantiatedMockBoard = GameObject.FindGameObjectWithTag("MockBoard");
         _boardPosition = instantiatedMockBoard.transform.position;
         Destroy(instantiatedMockBoard);
-        Instantiate(realBoard, _boardPosition, Quaternion.identity);
+
+        Quaternion boardRotation = ToQuaternion(new Vector3(0, 90, 0));
+        Instantiate(realBoard, _boardPosition, boardRotation);
         GameObject console = GameObject.FindGameObjectWithTag("Console");
         _debugConsole = console.GetComponent<DebugConsole>();
+    }
 
+    private void InitializeCapturedPieceCoords()
+    {
+        string filePath = Path.Combine(Application.streamingAssetsPath, "CapturedCoords.csv");
+        var sr = new StreamReader(filePath);
+
+        for (int row = 0; row <= 13; row++)
+        {
+            string line = sr.ReadLine();
+
+            // 0 is the piece name, 1 is Board X/Unity X, 2 is Board Y/Unity Z
+            string[] coordText = line.Split(',');
+            float x = float.Parse(coordText[1]);
+            float y = float.Parse(coordText[2]);
+
+            SpaceCoords pieceCoords = new SpaceCoords(x + _boardPosition.x,
+                                                      y + _boardPosition.z);
+
+            // KVP is the name of the piece and the coords it goes to when captured
+            _capturedPieceCoords.Add(coordText[0], pieceCoords);
+        }
+    }
+
+    private void InitializeCapturedPawnCoords()
+    {
+        string filePath = Path.Combine(Application.streamingAssetsPath, "CapturedBlackPawnCoords.csv");
+        var sr = new StreamReader(filePath);
+
+        for (int row = 0; row <= 7; row++)
+        {
+            string line = sr.ReadLine();
+            string[] coordText = line.Split(',');
+            float x = float.Parse(coordText[0]);
+            float y = float.Parse(coordText[1]);
+            _capturedBlackPawnCoords[row] = new SpaceCoords(x + _boardPosition.x,
+                                                            y + _boardPosition.z);
+        }
+
+        filePath = Path.Combine(Application.streamingAssetsPath, "CapturedWhitePawnCoords.csv");
+        sr = new StreamReader(filePath);
+
+        for (int row = 0; row <= 7; row++)
+        {
+            string line = sr.ReadLine();
+            string[] coordText = line.Split(',');
+            float x = float.Parse(coordText[0]);
+            float y = float.Parse(coordText[1]);
+            _capturedWhitePawnCoords[row] = new SpaceCoords(x + _boardPosition.x,
+                                                            y + _boardPosition.z);
+        }
+    }
+
+    private void InitializeBoardSquares()
+    {
         // First create a board; [0,0] is bottom left [x,y]
         _boardSquares = new SquareBounds[8, 8];
         SpaceCoords[,] boardCenters = new SpaceCoords[8, 8];
 
         // Import coords from CSV
-        string filePath = Path.Combine(Application.streamingAssetsPath, "BoardCoords.csv");
+        String filePath = Path.Combine(Application.streamingAssetsPath, "BoardCoords.csv");
         var sr = new StreamReader(filePath);
 
         // i is the row; split each row into strings of x,y coordinates
@@ -150,18 +416,18 @@ public class BoardController : MonoBehaviour
                 float x = float.Parse(coords[0]);
                 float y = float.Parse(coords[1]);
                 boardCenters[j, i] = new SpaceCoords((x + _boardPosition.x),
-                                                 (y + _boardPosition.z));
+                                                     (y + _boardPosition.z));
             }
         }
 
         // Get the difference between two centers for width and height of a square
         _squareWidth = boardCenters[1, 0].X - boardCenters[0, 0].X;
-        _squareHeight = boardCenters[0, 1].Y - boardCenters[0,0].Y;
+        _squareHeight = boardCenters[0, 1].Y - boardCenters[0, 0].Y;
 
         // Populate the _boardSquares array with the center of each array and its boundaries
-        for (int x = 0; x<=7; x++)
+        for (int x = 0; x <= 7; x++)
         {
-            for (int y=0; y<=7; y++)
+            for (int y = 0; y <= 7; y++)
             {
                 var square = new SquareBounds(boardCenters[x, y].X,
                                               boardCenters[x, y].Y,
@@ -172,145 +438,9 @@ public class BoardController : MonoBehaviour
                 _boardSquares[x, y] = square;
             }
         }
-
-        // Hardcode how to assemble the board because it's chess; it doesn't change
-        // Instantiate pieces.  Board X == Unity X; Board Y == Unity Z
-        var whiteStandardRotationAngles = new Vector3(0, 180, 90);
-        Quaternion whitestandardRotation = AnglesToQuaternion(whiteStandardRotationAngles);
-
-        var blackStandardRotationAngles = new Vector3(0, 0, 90);
-        Quaternion blackStandardRotation = AnglesToQuaternion(blackStandardRotationAngles);
-
-        var whiteKnightRotationAngles = new Vector3(0, 180, 0);
-        Quaternion whiteKnightRotation = AnglesToQuaternion(whiteKnightRotationAngles);
-
-        var blackKnightRotationAngles = new Vector3(0, 0, 0);
-        Quaternion blackKnightRotation = AnglesToQuaternion(blackKnightRotationAngles);
-
-        var whiteKingRotationAngles = new Vector3(0, -90, 90);
-        Quaternion whiteKingRotation = AnglesToQuaternion(whiteKingRotationAngles);
-
-        var blackKingRotationAngles = new Vector3(0, -90, 90);
-        Quaternion blackKingRotation = AnglesToQuaternion(blackKingRotationAngles);
-
-        // Populate pawns
-        for (int i = 0; i <= 7; i++)
-        {
-            // Assign positions in space
-            var whitePosition = new Vector3(_boardSquares[i, 1].XCenter,
-                                            (_boardHeight + _boardPosition.y),
-                                            _boardSquares[i, 1].YCenter);
-
-            var blackPosition = new Vector3(_boardSquares[i, 6].XCenter,
-                                            (_boardHeight + _boardPosition.y),
-                                            _boardSquares[i, 6].YCenter);
-
-            // Instantiate GameObjects and pull their scripts
-            GameObject newWhitePawn = Instantiate(whitePawn, whitePosition, whitestandardRotation);
-            GameObject newBlackPawn = Instantiate(blackPawn, blackPosition, blackStandardRotation);
-        }
-
-        // For main game pieces, first create Vector3s of their positions in space
-        // Rooks
-        var queensWhiteRookPos = new Vector3(_boardSquares[0, 0].XCenter,
-                                             (_boardHeight + _boardPosition.y),
-                                             _boardSquares[0, 0].YCenter);
-        var kingsWhiteRookPos = new Vector3(_boardSquares[7, 0].XCenter,
-                                            (_boardHeight + _boardPosition.y),
-                                            _boardSquares[7, 0].YCenter);
-        var queensBlackRookPos = new Vector3(_boardSquares[0, 7].XCenter,
-                                             (_boardHeight + _boardPosition.y),
-                                             _boardSquares[0, 7].YCenter);
-        var kingsBlackRookPos = new Vector3(_boardSquares[7, 7].XCenter,
-                                            (_boardHeight + _boardPosition.y),
-                                            _boardSquares[7, 7].YCenter);
-        // Knights
-        var queensWhiteKnightPos = new Vector3(_boardSquares[1, 0].XCenter,
-                                               (_boardHeight + _boardPosition.y),
-                                               _boardSquares[1, 0].YCenter);
-        var kingsWhiteKnightPos = new Vector3(_boardSquares[6, 0].XCenter,
-                                              (_boardHeight + _boardPosition.y),
-                                              _boardSquares[6, 0].YCenter);
-        var queensBlackKnightPos = new Vector3(_boardSquares[1, 7].XCenter,
-                                               (_boardHeight + _boardPosition.y),
-                                               _boardSquares[1, 7].YCenter);
-        var kingsBlackKnightPos = new Vector3(_boardSquares[6, 7].XCenter,
-                                              (_boardHeight + _boardPosition.y),
-                                              _boardSquares[6, 7].YCenter);
-        // Bishops
-        var queensWhiteBishopPos = new Vector3(_boardSquares[2, 0].XCenter,
-                                               (_boardHeight + _boardPosition.y),
-                                               _boardSquares[2, 0].YCenter);
-        var kingsWhiteBishopPos = new Vector3(_boardSquares[5, 0].XCenter,
-                                              (_boardHeight + _boardPosition.y),
-                                              _boardSquares[5, 0].YCenter);
-        var queensBlackBishopPos = new Vector3(_boardSquares[2, 7].XCenter,
-                                               (_boardHeight + _boardPosition.y),
-                                               _boardSquares[2, 7].YCenter);
-        var kingsBlackBishopPos = new Vector3(_boardSquares[5, 7].XCenter,
-                                              (_boardHeight + _boardPosition.y),
-                                              _boardSquares[5, 7].YCenter);
-        // Queens
-        var whiteQueenPos = new Vector3(_boardSquares[3, 0].XCenter,
-                                        (_boardHeight + _boardPosition.y),
-                                        _boardSquares[3, 0].YCenter);
-        var blackQueenPos = new Vector3(_boardSquares[3, 7].XCenter,
-                                        (_boardHeight + _boardPosition.y),
-                                        _boardSquares[3, 7].YCenter);
-        // Kings
-        var whiteKingPos = new Vector3(_boardSquares[4, 0].XCenter,
-                                       (_boardHeight + _boardPosition.y),
-                                       _boardSquares[4, 0].YCenter);
-        var blackKingPos = new Vector3(_boardSquares[4, 7].XCenter,
-                                       (_boardHeight + _boardPosition.y),
-                                       _boardSquares[4, 7].YCenter);
-
-        // Then instantiate the objects at those positions
-        // Rooks
-        GameObject queensWhiteRook = Instantiate(whiteRook, queensWhiteRookPos, whitestandardRotation);
-        GameObject kingsWhiteRook = Instantiate(whiteRook, kingsWhiteRookPos, whitestandardRotation);
-        GameObject queensBlackRook = Instantiate(blackRook, queensBlackRookPos, blackStandardRotation);
-        GameObject kingsBlackRook = Instantiate(blackRook, kingsBlackRookPos, blackStandardRotation);
-
-        // Knights
-        GameObject queensWhiteKnight = Instantiate(whiteKnight,
-                                                   queensWhiteKnightPos,
-                                                   whiteKnightRotation);
-        GameObject kingsWhiteKnight = Instantiate(whiteKnight,
-                                                  kingsWhiteKnightPos,
-                                                  whiteKnightRotation);
-        GameObject queensBlackKnight = Instantiate(blackKnight,
-                                                   queensBlackKnightPos,
-                                                   blackKnightRotation);
-        GameObject kingsBlackKnight = Instantiate(blackKnight,
-                                                  kingsBlackKnightPos,
-                                                  blackKnightRotation);
-        // Bishops 
-        GameObject queensWhiteBishop = Instantiate(whiteBishop,
-                                                   queensWhiteBishopPos,
-                                                   whitestandardRotation);
-        GameObject kingsWhiteBishop = Instantiate(whiteBishop,
-                                                  kingsWhiteBishopPos,
-                                                  whitestandardRotation);
-        GameObject queensBlackBishop = Instantiate(blackBishop,
-                                                   queensBlackBishopPos,
-                                                   blackStandardRotation);
-        GameObject kingsBlackBishop = Instantiate(blackBishop,
-                                                  kingsBlackBishopPos,
-                                                  blackStandardRotation);
-        // Queens and Kings
-        GameObject realWhiteQueen = Instantiate(whiteQueen, whiteQueenPos, whitestandardRotation);
-        GameObject realBlackQueen = Instantiate(blackQueen, blackQueenPos, blackStandardRotation);
-
-        GameObject realWhiteKing = Instantiate(whiteKing, whiteKingPos, whiteKingRotation);
-        GameObject realBlackKing = Instantiate(blackKing, blackKingPos, blackKingRotation);
-
-        // Once all pieces are there, get game controller and sync action squares once
-        var gameController = gameObject.GetComponent<GameController>();
-        gameController.ReSync();
     }
 
-    private Quaternion AnglesToQuaternion(Vector3 vector3)
+    private Quaternion ToQuaternion(Vector3 vector3)
     {
         var quaternion = new Quaternion();
         quaternion.eulerAngles = vector3;

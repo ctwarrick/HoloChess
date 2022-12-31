@@ -1,0 +1,14 @@
+WhiteQueen, -0.3575, -0.2275
+WhiteRook1, -0.3575, -0.1625
+WhiteRook2, -0.3575, -0.0975
+WhiteBishop1, -0.3575, -0.0325
+WhiteBishop2, -0.3575, 0.0325
+WhiteKnight1, -0.3575, 0.0975
+WhiteKnight2, -0.3575, 0.1625
+BlackQueen, 0.3575, 0.2275
+BlackRook1, 0.3575, 0.1625
+BlackRook2, 0.3575, 0.0975
+BlackBishop1, 0.3575, 0.0325
+BlackBishop2, 0.3575, -0.0325
+BlackKnight1, 0.3575, -0.0975
+BlackKnight2, 0.3575, -0.1625
